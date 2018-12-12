@@ -1,0 +1,60 @@
+<script>
+    function saveCsvLink (){
+        var $ = jQuery;
+        var csvData = 'data:text/csv;charset=utf-8,';
+        var realIdx = 1;
+        
+        $(this).find("[name^='form_fields']:not(input[type='hidden'])").each(function(idx){
+             if( $(this).prop('name').indexOf('form_fields[name_') === -1 || $(this).is(":checked") ) {
+			csvData += jQuery(this).val() + ( (realIdx % 3 === 0) ? "%0D%0A" : ',' );
+			realIdx++;
+             }
+        });
+
+        $(this).find('input[name="form_fields[csvFile]"]').val( csvData );
+    }
+    
+    (function( $ ){
+        $("form#form_emi input[type='checkbox']").change(function(){
+            
+            var inForm = $( this ).is( ':checked' );
+            var p_id = '';
+
+            p_id = $(this).prop('name');
+            p_id = p_id.match( /(name_)([a-z]*\d+)/iug )[0].replace('name_','')
+            
+            $( this ).closest('form').find('input[type="text"], input[type="hidden"], textarea, select').each(function(){
+                var inp_name = $(this).prop('name');
+                var testRegx = new RegExp( '(cnt|sep|note)_' + p_id );
+                
+                if( inp_name.indexOf( '_' + p_id + ']' ) !== -1 ) {
+                    if( inForm ) {
+                        $(this).prop('name', inp_name.replace( /^_+/, '' ) )
+                    } else {
+                        $(this).prop('name', '_' + inp_name)
+                    }
+                    
+                    if( inp_name.indexOf( 'note' ) === -1 ) {
+                        $( this ).prop('required', inForm );
+                    }
+                }
+            });
+            
+        }).trigger('change').closest( 'form' ).on( 'submit', saveCsvLink );
+        
+        $("form select[name*='cnt_']").prepend( $( '<option value="" selected>בחר כמות</option>' ) ).val('');
+    
+        
+    })( jQuery );
+</script>
+<style>
+    form#form_emi input,
+    form#form_emi select {
+        transition: all 0.4s;
+    }
+    
+    form#form_emi input[name^="_form_fields"],
+    form#form_emi select[name^="_form_fields"] {
+        opacity: 0.7;
+    }
+</style>
